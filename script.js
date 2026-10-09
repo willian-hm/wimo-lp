@@ -59,6 +59,49 @@
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 
-  /* ---------- 4. EXTRAS ---------- */
+  /* ---------- 4. BOLHAS ANIMADAS ---------- */
+  // Cada bolha sobe em velocidade própria conforme a rolagem (efeito parallax)
+  // e balança sozinha via CSS. Ao sair pelo topo, reaparece por baixo.
+  const bubbleLayer = document.getElementById('bubbles');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const COLORS = ['#A8E6D2', '#4FCDAA', '#CDBFF0', '#9C86D0'];
+  const count = window.innerWidth < 760 ? 9 : 16;
+  const bubbles = [];
+
+  for (let i = 0; i < count; i++) {
+    const size = 24 + Math.random() * 90;
+    const el = document.createElement('div');
+    el.className = 'bubble';
+    el.style.width = el.style.height = size + 'px';
+    el.style.left = Math.random() * 96 + '%';
+    el.style.setProperty('--bubble-color', COLORS[i % COLORS.length]);
+    el.style.setProperty('--bubble-opacity', (0.22 + Math.random() * 0.25).toFixed(2));
+    el.style.setProperty('--sway', (6 + Math.random() * 6).toFixed(1) + 's');
+    el.innerHTML = '<i></i>';
+    bubbleLayer.appendChild(el);
+    bubbles.push({ el, size, speed: 0.04 + Math.random() * 0.22, base: Math.random() * 1000 });
+  }
+
+  let ticking = false;
+  const moveBubbles = () => {
+    const vh = window.innerHeight;
+    const y = window.scrollY;
+    bubbles.forEach(b => {
+      const range = vh + b.size * 2;
+      const pos = (((b.base - y * b.speed) % range) + range) % range;
+      b.el.style.transform = `translate3d(0, ${pos - b.size}px, 0)`;
+    });
+    ticking = false;
+  };
+  moveBubbles();
+
+  if (!reduceMotion) {
+    window.addEventListener('scroll', () => {
+      if (!ticking) { ticking = true; requestAnimationFrame(moveBubbles); }
+    }, { passive: true });
+    window.addEventListener('resize', moveBubbles);
+  }
+
+  /* ---------- 5. EXTRAS ---------- */
   document.getElementById('year').textContent = new Date().getFullYear();
 })();
